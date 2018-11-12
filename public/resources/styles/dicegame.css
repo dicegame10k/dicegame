@@ -1,0 +1,78 @@
+.dicegame-bg {
+	background-color: #070708;
+}
+
+.welcomeMsg {
+	text-align: center;
+	margin: 50px 0 25px 0;
+}
+
+th {
+	text-align: center !important;
+}
+
+.lobby {
+	height: 650px;
+	overflow: auto;
+	padding: 0 15px 0 15px;
+}
+
+.light-up-btn {
+	display: flex !important;
+	justify-content: center;
+	margin: auto;
+}
+
+.currentRoll {
+	font-size: 100px;
+	position: absolute !important;
+	text-shadow:
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000;
+}
+
+.roll-btn {
+	position: absolute !important;
+}
+
+.fire {
+	position: absolute !important;
+}
+
+.graveyard {
+	height: 500px;
+	overflow: auto;
+	padding: 0 15px 0 15px;
+}
+
+.chat {
+	position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 33%;
+    padding: 0 20px 35px 0;
+}
+
+.all-chat-messages {
+	height: 100px;
+	max-height: 100px;
+    overflow: auto;
+    margin-bottom: 3px;
+    background-color: #1F2833;
+}
+
+.message {
+  overflow-y: scroll;
+  overflow-wrap: break-word;
+  margin: 1px 10px; 1px 10px;
+}
+
+.footer {
+	position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 0 0 5px 10px;
+}

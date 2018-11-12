@@ -1,0 +1,116 @@
+<!doctype html>
+<html ng-app="diceGameApp">
+	<head>
+		<title>DiceGame | 10k let's go</title>
+		<link rel="stylesheet" href="/resources/styles/dicegame.css">
+		<link rel="stylesheet" href="/resources/styles/classColors.css">
+		<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.5/angular.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/resources/scripts/dicegameController.js"></script>
+	</head>
+	<!-- See https://blog.visme.co/website-color-schemes/ # 12 -->
+	<body class="dicegame-bg text-white">
+		<div ng-controller="DiceGameController as diceGame" class="ng-cloak">
+			<!-- Login Page -->
+			<div ng-show="!isLoggedIn" class="container">
+				<h1 class="welcomeMsg">Welcome to DiceGame</h1>
+				<form ng-submit="login()">
+					<div class="form-group">
+						<input id="username" ng-model="userName" class="form-control" placeholder="Enter a username" autocomplete="off"/>
+					</div>
+					<div>Choose a class:</div>
+					<div class="form-group">
+						<span ng-repeat="wc in wowClasses" class="wow-class-icon rounded {{wc}}-bg" id="{{wc}}" ng-click="chooseClass($event)"></span>
+					</div>
+					<button class="btn btn-info">Join</button>
+				</form>
+			</div>
+
+			<!-- DiceGame -->
+			<div ng-show="isLoggedIn">
+				<table style="width: 100%">
+					<tr>
+						<th><h3 style="margin-top: 10px !important">Lobby</h3></th>
+						<th></th>
+						<th><h3 style="margin-top: 10px !important">Graveyard</h3></th>
+					</tr>
+					<tr>
+						<td style="width: 20%">
+							<!-- Lobby -->
+							<div id="lobby" class="lobby">
+								<div ng-repeat="lobbyUser in lobby track by $index" class="card wow-card-container text-center mb-3">
+									<div class="card-body wow-card rounded {{lobbyUser.wowClass}}-bg">
+										<h5 class="card-text">{{lobbyUser.userName}}</h5>
+								  	</div>
+								</div>
+							</div>
+						</td>
+
+						<td style="width: 60%">
+							<!-- Active game -->
+							<div ng-show="!gameInProgress">
+								<button ng-click="lightUp()" class="btn btn-danger light-up-btn">Light Up</button>
+							</div>
+							<div ng-show="gameInProgress">
+								<img id="fire" class="fire" src="/resources/images/fire.gif">
+								<div ng-repeat="player in players track by $index" id="{{player.userName}}" class="wow-card-container text-center player-in-game rounded {{player.wowClass}}-bg">
+										<span style="font-weight: bold;">{{player.userName}}</span>
+								</div>
+								<div id="currRoll" class="currentRoll" ng-show="currentlyRollingPlayer != null">{{currRoll}}</div>
+								<button ng-show="currentlyRollingPlayer == userName" ng-click="roll()" ng-show="currentlyRollingPlayer == userName" class="btn btn-primary roll-btn" id="rollButton">Roll</button>
+							</div>
+						</td>
+
+						<td style="width: 20%; vertical-align: top;">
+							<!-- Graveyard -->
+							<div id="graveyard" class="graveyard">
+								<div ng-repeat="failkid in graveyard track by $index" class="card wow-card-container text-center mb-3">
+									<div class="card-body wow-card rounded {{failkid.wowClass}}-bg">
+										<h5 class="card-text">{{failkid.userName}}</h5>
+								  	</div>
+								</div>
+							</div>
+
+							<!-- Chat -->
+							<div id="chat" class="chat">
+								<div id="allChatMessages" class="all-chat-messages border border-dark rounded" onmouseenter="stopScrollingChat()" onmouseleave="autoScrollChat()">
+									<div class="message" ng-repeat="message in chatMessages track by $index">
+										{{message}}
+									</div>
+								</div>
+								<form ng-submit="chat()">
+									<div class="form-inline" style="flex-flow: nowrap !important">
+										<input ng-model="chatMsg" class="form-control" style="width: 85%;" autocomplete="off" />
+										<button class="form-control btn btn-info" style="margin-left: 5px;">Send</button>
+									</div>
+								</form>
+							</div>
+						</td>
+					</tr>
+				</table>
+
+			</div>
+		</div>
+
+		<script>
+			autoScrollChat();
+			// keep the chat window scrolled down
+			var chatWindowScrollIntvlId;
+			function autoScrollChat() {
+				chatWindowScrollIntvlId = setInterval(() => {
+					var chatBoxElem = document.getElementById('allChatMessages');
+					chatBoxElem.scrollTop = chatBoxElem.scrollHeight;
+				}, 200);
+			}
+
+			function stopScrollingChat() {
+				clearInterval(chatWindowScrollIntvlId);
+			}
+		</script>
+	</body>
+	<footer class="footer text-muted">
+		© 2018 <a target="_blank" href="https://www.wowprogress.com/guild/us/emerald-dream/Chill+Beats">&lt;Chill Beats&gt;</a>
+	</footer>
+</html>
