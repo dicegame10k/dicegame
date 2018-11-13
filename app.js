@@ -5,8 +5,22 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var port = process.env.PORT || 8080;
 
+// dynamoDB setup for leaderboard
+var AWS = require("aws-sdk");
+AWS.config.update({
+  region: "us-west-2",
+  endpoint: "http://localhost:8000"
+});
+var dynamodb = new AWS.DynamoDB();
+var docClient = new AWS.DynamoDB.DocumentClient();
+var leaderboardTableName = "Leaderboard";
+
 // Routing
 app.use(express.static(path.join(__dirname, 'public')));
+
+http.listen(port, function() {
+	console.log('Server started on port ' + port);
+});
 
 var currRoll = 100;
 var lobby = [];
@@ -128,8 +142,7 @@ io.on('connection', function(socket) {
 					currRoll = 100;
 					// check win condition
 					if (dgPlayers.length == 1) {
-						var winMsg = dgPlayers[0].userName + " wins!";
-						setTimeout(() => { io.emit('chatMessageSent', winMsg); }, 1000);
+						setTimeout(() => { updateLeaderboard(dgPlayers[0].userName); }, 1000);
 						setTimeout(() => { resetGame(); io.emit('resetGame', getGameState()); }, 5000);
 						currentlyRollingPlayer = null;
 					} else if (dgPlayers.length == 0) {
@@ -216,6 +229,88 @@ function removePlayer(userName) {
 	}
 }
 
-http.listen(port, function() {
-	console.log('Server started on port ' + port);
-});
+// Leaderboard
+function updateLeaderboard(winningPlayer) {
+	// write down the win message here (without total wins) so we can still send out a chat message in case any DB operation fails
+	var winMsg = winningPlayer + " wins!";
+	var winningPlayerParams = {
+	    TableName: leaderboardTableName,
+	    Key: {
+	        "username": winningPlayer
+	    }
+	};
+
+	// first check if this user already has a record. If so, increment number of wins, otherwise create a new record with 1 win
+	docClient.get(winningPlayerParams, function(err, data) {
+	    if (err) {
+	        console.log("Error retrieving winning user record", data);
+	        io.emit('chatMessageSent', winMsg);
+	        return;
+	    }
+
+	    var userRecord = data["Item"];
+	    if (userRecord) {
+	        // user exists, increment wins by 1
+	        var incrementWinsParams = {
+	            TableName: leaderboardTableName,
+	            Key: {
+	                "username": winningPlayerParams["Key"]["username"]
+	            },
+	            UpdateExpression: "set wins = wins + :val",
+	            ExpressionAttributeValues: {
+	                ":val": 1
+	            },
+	            ReturnValues:"UPDATED_NEW"
+	        }
+
+	        docClient.update(incrementWinsParams, function(err, data) {
+	            if (err) {
+	                console.log("Error updating winning user record", data);
+	                io.emit('chatMessageSent', winMsg);
+	                return;
+	            }
+
+				var winningPlayerTotalWins = data["Attributes"]["wins"];
+	            winMsg = winningPlayer + " wins! (" + winningPlayerTotalWins + " total)";
+	            io.emit('chatMessageSent', winMsg);
+	            broadcastNewLeaderboard();
+	        });
+	    } else {
+	        // user does not exist, create new record with one win
+	        var newUserParams = {
+	            TableName: leaderboardTableName,
+	            Item: {
+	                "username": winningPlayer,
+	                "wins": 1
+	            }
+	        };
+
+	        docClient.put(newUserParams, function(err, data) {
+	            if (err) {
+	                console.log("Error creating wining user record", data);
+	                io.emit('chatMessageSent', winMsg);
+	                return;
+	            }
+
+				winMsg = winningPlayer + " wins! (1 total)";
+	            io.emit('chatMessageSent', winMsg);
+	            broadcastNewLeaderboard();
+	        });
+	    }
+	});
+}
+
+function broadcastNewLeaderboard() {
+	//TODO: order by wins
+	var scanTableParams = {
+	    TableName: leaderboardTableName
+	};
+    docClient.scan(scanTableParams, function(err, data) {
+    	if (err) {
+    		console.log("Error scanning table while trying to broadcast new leaderboard", data);
+    		return;
+    	}
+
+        io.emit("leaderboardUpdated", data["Items"]);
+    });
+}
