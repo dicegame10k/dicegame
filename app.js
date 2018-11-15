@@ -181,6 +181,10 @@ io.on('connection', function(socket) {
 
 		io.emit('userRolled', getGameState());
 	};
+
+	socket.on('clearLeaderboard', function() {
+		clearLeaderboard();
+	});
 });
 
 function startGame(startingUser) {
@@ -353,6 +357,34 @@ function getLeaderboard(callback) {
 
         callback(data["Items"]);
     });
+}
+
+// CAUTION...
+function clearLeaderboard() {
+	console.log("WARNING: Clearing the leaderboard");
+	getLeaderboard((leaderboard) => {
+		var numRecordsDeleted = 0;
+		for (var i = 0; i < leaderboard.length; i += 1) {
+			var aUsername = leaderboard[i].username;
+			var deleteParams = {
+				TableName: leaderboardTableName,
+				Key: {
+					"username": aUsername
+				}
+			}
+			docClient.delete(deleteParams, function(err, data) {
+				if (err) {
+					console.log("Failed to delete leaderboard entry for " + aUsername, err);
+					return;
+				}
+
+				console.log("Successfully deleted leaderboard entry", data);
+				numRecordsDeleted += 1;
+				if (numRecordsDeleted == leaderboard.length)
+					getLeaderboard((leaderboard) => { io.emit('leaderboardUpdated', leaderboard)});
+			});
+		}
+	});
 }
 
 //TODO: env variables/table setup in aws
