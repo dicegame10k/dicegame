@@ -40,6 +40,7 @@ th {
 	display: flex !important;
 	justify-content: center;
 	margin: auto;
+	color: #070708 !important;
 }
 
 .currentRoll {
@@ -54,6 +55,7 @@ th {
 
 .roll-btn {
 	position: absolute !important;
+	color: #070708 !important;
 }
 
 .fire {

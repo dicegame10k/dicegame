@@ -67,7 +67,7 @@
 											<span style="font-weight: bold;">{{player.userName}}</span>
 									</div>
 									<div id="currRoll" class="currentRoll" ng-show="currentlyRollingPlayer != null">{{currRoll}}</div>
-									<button ng-show="currentlyRollingPlayer == userName" ng-click="roll()" ng-show="currentlyRollingPlayer == userName" class="btn btn-primary roll-btn" id="rollButton">Roll</button>
+									<button ng-show="currentlyRollingPlayer == userName" ng-click="roll()" ng-show="currentlyRollingPlayer == userName" class="btn roll-btn {{wowClass}}-bg" id="rollButton">Roll</button>
 								</div>
 							</td>
 
