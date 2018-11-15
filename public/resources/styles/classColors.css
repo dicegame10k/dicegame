@@ -45,89 +45,89 @@
 }
 
 .death-knight {
-	color: #C41F3B;
+	color: #C41F3B !important;
 }
 
 .death-knight-bg {
-	background-color: #C41F3B;
+	background-color: #C41F3B !important;
 }
 
 .demon-hunter {
-	color: #A330C9;
+	color: #A330C9 !important;
 }
 
 .demon-hunter-bg {
-	background-color: #A330C9;
+	background-color: #A330C9 !important;
 }
 
 .druid {
-	color: #FF7D0A;
+	color: #FF7D0A !important;
 }
 
 .druid-bg {
-	background-color: #FF7D0A;
+	background-color: #FF7D0A !important;
 }
 
 .hunter {
-	color: #ABD473;
+	color: #ABD473 !important;
 }
 
 .hunter-bg {
-	background-color: #ABD473;
+	background-color: #ABD473 !important;
 }
 
 .mage {
-	color: #40C7EB;
+	color: #40C7EB !important;
 }
 
 .mage-bg {
-	background-color: #40C7EB;
+	background-color: #40C7EB !important;
 }
 
 .monk {
-	color: #00FF96;
+	color: #00FF96 !important;
 }
 
 .monk-bg {
-	background-color: #00FF96;
+	background-color: #00FF96 !important;
 }
 
 .paladin {
-	color: #F58CBA;
+	color: #F58CBA !important;
 }
 
 .paladin-bg {
-	background-color: #F58CBA;
+	background-color: #F58CBA !important;
 }
 
 .rogue {
-	color: #FFF569;
+	color: #FFF569 !important;
 }
 
 .rogue-bg {
-	background-color: #FFF569;
+	background-color: #FFF569 !important;
 }
 
 .shaman {
-	color: #0070DE;
+	color: #0070DE !important;
 }
 
 .shaman-bg {
-	background-color: #0070DE;
+	background-color: #0070DE !important;
 }
 
 .warlock {
-	color: #8787ED;
+	color: #8787ED !important;
 }
 
 .warlock-bg {
-	background-color: #8787ED;
+	background-color: #8787ED !important;
 }
 
 .warrior {
-	color: #C79C6E;
+	color: #C79C6E !important;
 }
 
 .warrior-bg {
-	background-color: #C79C6E;
+	background-color: #C79C6E !important;
 }
