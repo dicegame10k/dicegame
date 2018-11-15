@@ -31,8 +31,8 @@
 			<!-- Once logged in -->
 			<div ng-show="isLoggedIn">
 				<nav class="dicegame-nav">
-					<div class="dicegame-nav-item" ng-click="toggleDiceGame()">DiceGame</div>
-					<div class="dicegame-nav-item" ng-click="toggleLeaderboard()">Leaderboard</div>
+					<div class="dicegame-nav-item" ng-click="toggleDiceGame()" ng-mouseover="addNavItemHoverClass($event)" ng-mouseleave="removeNavItemHoverClass($event)">DiceGame</div>
+					<div class="dicegame-nav-item" ng-click="toggleLeaderboard()" ng-mouseover="addNavItemHoverClass($event)" ng-mouseleave="removeNavItemHoverClass($event)">Leaderboard</div>
 					<div class="dicegame-nav-username {{wowClass}}">{{userName}}</div>
 				</nav>
 
@@ -108,7 +108,7 @@
 							<th class="dicegame-leaderboard-header">Wins</th>
 						</thead>
 						<tbody>
-							<tr ng-repeat="player in leaderboard track by $index" ng-class="{'{{wowClass}}': '{{player.username}}' == '{{userName}}'}">
+							<tr ng-repeat="player in leaderboard track by $index" id="{{player.username}}-leaderboard">
 								<td class="dicegame-leaderboard-cell">{{player.username}}</td>
 								<td class="dicegame-leaderboard-cell">{{player.wins}}</td>
 							</tr>

@@ -25,10 +25,6 @@ th {
 	padding: .5rem 1rem;
 }
 
-.dicegame-nav-item:hover {
-	color: #00FF96;
-}
-
 .dicegame-nav-username {
 	margin-left: auto !important;
 	margin-right: 30px !important;

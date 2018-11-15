@@ -28,6 +28,14 @@ angular.module('diceGameApp', [])
 			$scope.showLeaderboard = true;
 		};
 
+		$scope.addNavItemHoverClass = function($event) {
+			$event.target.classList.add($scope.wowClass);
+		}
+
+		$scope.removeNavItemHoverClass = function($event) {
+			$event.target.classList.remove($scope.wowClass);
+		}
+
   		$scope.requestReset = function() {
   			socket.emit("requestReset");
   		};
@@ -213,6 +221,14 @@ angular.module('diceGameApp', [])
 			$timeout(() => {
 				leaderboard.sort(lbSort);
 				$scope.leaderboard = leaderboard;
+				// highlight the current user on the leaderboard
+				setTimeout(() => {
+					var leaderboardPlayer = document.getElementById($scope.userName + "-leaderboard");
+					if (!leaderboardPlayer)
+						return;
+
+					leaderboardPlayer.classList.add($scope.wowClass);
+				}, 50);
 			});
 
 			function lbSort(a, b) {
