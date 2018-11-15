@@ -66,12 +66,16 @@ angular.module('diceGameApp', [])
 			var adminCommands = {
 				'/roll': $scope.roll,
 				'/stuck': $scope.requestReset,
-				'/lightup': $scope.lightUp
+				'/lightup': $scope.lightUp,
+				'/force_roll': $scope.forceRoll,
+				'/kick': $scope.kick
 			}
 
-			if (typeof adminCommands[$scope.chatMsg.toLowerCase()] === "function") {
+			// only look at the first word of chat
+			var firstWord = $scope.chatMsg.toLowerCase().split(' ')[0];
+			if (typeof adminCommands[firstWord] === "function") {
 				try {
-					adminCommands[$scope.chatMsg.toLowerCase()]();
+					adminCommands[firstWord]($scope.chatMsg);
 				} catch (e) {
 					console.log("Admin command didn't work", e);
 				}
@@ -82,6 +86,24 @@ angular.module('diceGameApp', [])
 
 			return false;
 		};
+
+		$scope.kick = function(chatMsg) {
+			var playerToKick = chatMsg.split(' ')[1];
+			if (!playerToKick)
+				return;
+
+			socket.emit("kickPlayer", playerToKick);
+		};
+
+		socket.on('playerKicked', function(playerWhoWasKicked, gameState) {
+			$timeout(() => {
+				// log out if you were the one kicked
+				if ($scope.userName == playerWhoWasKicked)
+					$scope.isLoggedIn = false;
+
+				_updateGameState(gameState);
+			});
+		});
 
 		//Login
 		$scope.login = function() {
@@ -102,6 +124,12 @@ angular.module('diceGameApp', [])
 
 			// make the first letter uppercase and all other letters lowercase
 			$scope.userName = $scope.userName.charAt(0).toUpperCase() + $scope.userName.slice(1).toLowerCase();
+
+			//profanity check
+			if ($scope.userName.indexOf('Nig') != -1) {
+				alert("C'mon now Mike");
+				return;
+			}
 
 			socket.emit("login", $scope.userName, $scope.wowClass);
 
@@ -148,6 +176,10 @@ angular.module('diceGameApp', [])
 
 			$scope.currentlyRollingPlayer = "this_is_only_to_hide_the_button_i_love_hacky_workarounds_like_this";
   			socket.emit("roll");
+  		};
+
+  		$scope.forceRoll = function() {
+  			socket.emit("forceRoll");
   		};
 
   		socket.on('userRolled', function(gameState) {
@@ -223,6 +255,13 @@ angular.module('diceGameApp', [])
 				$scope.leaderboard = leaderboard;
 				// highlight the current user on the leaderboard
 				setTimeout(() => {
+					var leaderboardPlayers = document.getElementById('leaderboardBody').children;
+					for (var i = 0; i < leaderboardPlayers.length; i += 1) {
+						var player = leaderboardPlayers[i];
+						for (var j = 0; j < $scope.wowClasses.length; j += 1)
+							player.classList.remove($scope.wowClasses[j]);
+					}
+
 					var leaderboardPlayer = document.getElementById($scope.userName + "-leaderboard");
 					if (!leaderboardPlayer)
 						return;

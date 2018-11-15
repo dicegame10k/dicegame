@@ -107,7 +107,7 @@
 							<th class="dicegame-leaderboard-header">Username</th>
 							<th class="dicegame-leaderboard-header">Wins</th>
 						</thead>
-						<tbody>
+						<tbody id="leaderboardBody">
 							<tr ng-repeat="player in leaderboard track by $index" id="{{player.username}}-leaderboard">
 								<td class="dicegame-leaderboard-cell">{{player.username}}</td>
 								<td class="dicegame-leaderboard-cell">{{player.wins}}</td>

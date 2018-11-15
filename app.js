@@ -70,6 +70,22 @@ io.on('connection', function(socket) {
     	io.emit('chatMessageSent', playerSendingMsg + ': ' + msg);
 	});
 
+	socket.on('kickPlayer', function(playerToKick) {
+		if (!playerToKick)
+			return;
+
+		console.log(socket.username + " is kicking " + playerToKick);
+		if (userNames.indexOf(playerToKick) == -1) {
+			console.log("Cannot kick " + playerToKick + ", player does not exist");
+			socket.emit('chatMessageSent', "Cannot kick " + playerToKick + ", player does not exist");
+			return;
+		}
+
+		removePlayer(playerToKick);
+		io.emit('chatMessageSent', playerToKick + " kicked out of the game by " + socket.username);
+		io.emit('playerKicked', playerToKick, getGameState());
+	});
+
 	// User
 	socket.on('login', function(userName, wowClass) {
 		if (userNames.indexOf(userName) != -1) {
@@ -115,8 +131,20 @@ io.on('connection', function(socket) {
 			return;
 		}
 
+		roll(socket.username);
+	});
+
+	socket.on('forceRoll', function() {
+		// just forcibly roll as the player who is supposed to be rolling
+		roll(currentlyRollingPlayer);
+	});
+
+	function roll(playerRolling) {
+		if (!gameInProgress)
+			return;
+
 		currRoll = Math.floor(Math.random() * currRoll) + 1;
-		var rollMsg = socket.username + " rolled " + currRoll;
+		var rollMsg = playerRolling + " rolled " + currRoll;
 		if (currRoll == 1)
 			rollMsg += " (RIP)";
 
@@ -127,7 +155,7 @@ io.on('connection', function(socket) {
 		// calculate the next player to roll
 		for (var i = 0; i < dgPlayers.length; i += 1) {
 			var player = dgPlayers[i];
-			if (player.userName == socket.username) {
+			if (player.userName == playerRolling) {
 				var nextPlayerIndex = (i + 1) % dgPlayers.length;
 				currentlyRollingPlayer = dgPlayers[nextPlayerIndex].userName;
 
@@ -143,7 +171,7 @@ io.on('connection', function(socket) {
 						currentlyRollingPlayer = null;
 					} else if (dgPlayers.length == 0) {
 						// player was playing alone, so he loses
-						setTimeout(() => { io.emit('chatMessageSent', socket.username + " loses. You were playing alone, what did you expect?"); }, 1000);
+						setTimeout(() => { io.emit('chatMessageSent', playerRolling + " loses. You were playing alone, what did you expect?"); }, 1000);
 						setTimeout(() => { resetGame(); io.emit('resetGame', getGameState()); }, 5000);
 						currentlyRollingPlayer = null;
 					}
@@ -152,7 +180,7 @@ io.on('connection', function(socket) {
 		}
 
 		io.emit('userRolled', getGameState());
-	});
+	};
 });
 
 function startGame(startingUser) {
@@ -327,8 +355,5 @@ function getLeaderboard(callback) {
     });
 }
 
-//TODO: order by wins
 //TODO: env variables/table setup in aws
 //TODO: aws credentials
-//TODO: kick player
-//TODO: force roll
