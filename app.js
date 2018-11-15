@@ -44,14 +44,6 @@ io.on('connection', function(socket) {
 		// tell everyone this user disconnected
 		io.emit('playerLeft', getGameState());
 		io.emit('chatMessageSent', socket.username + " left the game");
-
-		// reset the game if nobody else is playing, so it doesn't get stuck in progress with nobody playing
-		if (gameInProgress && dgPlayers.length == 0) {
-			console.log("Resetting game in progress, nobody is playing it");
-			resetGame();
-			io.emit("chatMessageSent", "Resetting game in progress, nobody is playing it");
-			io.emit('resetGame', getGameState());
-		}
 	});
 
 	socket.on('requestReset', function() {
@@ -97,6 +89,10 @@ io.on('connection', function(socket) {
 		socket.broadcast.emit('playerJoined', gameState);
 		io.emit('chatMessageSent', socket.username + " entered the lobby");
 		console.log("User created: " + userName + " - " + wowClass);
+		// send the leaderboard to the new user only
+		getLeaderboard((leaderboard) => {
+			socket.emit('leaderboardUpdated', leaderboard);
+		});
 	});
 
 	// DiceGame
@@ -219,6 +215,15 @@ function removePlayer(userName) {
 	removeFromArr(lobby);
 	removeFromArr(dgPlayers);
 	removeFromArr(graveyard);
+
+	// reset the game if nobody else is playing, so it doesn't get stuck in progress with nobody playing
+	if (gameInProgress && dgPlayers.length == 0) {
+		console.log("Resetting game in progress, nobody is playing it");
+		resetGame();
+		io.emit("chatMessageSent", "Resetting game in progress, nobody is playing it");
+		io.emit('resetGame', getGameState());
+	}
+
 	function removeFromArr(arr) {
 		for (var i = 0; i < arr.length; i += 1) {
 			if (arr[i].userName == userName) {
@@ -273,7 +278,10 @@ function updateLeaderboard(winningPlayer) {
 				var winningPlayerTotalWins = data["Attributes"]["wins"];
 	            winMsg = winningPlayer + " wins! (" + winningPlayerTotalWins + " total)";
 	            io.emit('chatMessageSent', winMsg);
-	            broadcastNewLeaderboard();
+	            // broadcast the new leaderboard
+	            getLeaderboard((leaderboard) => {
+					io.emit("leaderboardUpdated", leaderboard);
+	            });
 	        });
 	    } else {
 	        // user does not exist, create new record with one win
@@ -294,23 +302,33 @@ function updateLeaderboard(winningPlayer) {
 
 				winMsg = winningPlayer + " wins! (1 total)";
 	            io.emit('chatMessageSent', winMsg);
-	            broadcastNewLeaderboard();
+	            // broadcast the new leaderboard
+	            getLeaderboard((leaderboard) => {
+					io.emit("leaderboardUpdated", leaderboard);
+	            });
 	        });
 	    }
 	});
 }
 
-function broadcastNewLeaderboard() {
-	//TODO: order by wins
-	var scanTableParams = {
-	    TableName: leaderboardTableName
-	};
+var scanTableParams = {
+    TableName: leaderboardTableName
+};
+
+// asynchronously reads the leaderboard and calls callback with the leaderboard data
+function getLeaderboard(callback) {
     docClient.scan(scanTableParams, function(err, data) {
     	if (err) {
     		console.log("Error scanning table while trying to broadcast new leaderboard", data);
     		return;
     	}
 
-        io.emit("leaderboardUpdated", data["Items"]);
+        callback(data["Items"]);
     });
 }
+
+//TODO: order by wins
+//TODO: env variables/table setup in aws
+//TODO: aws credentials
+//TODO: kick player
+//TODO: force roll

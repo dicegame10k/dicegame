@@ -28,68 +28,93 @@
 				</form>
 			</div>
 
-			<!-- DiceGame -->
+			<!-- Once logged in -->
 			<div ng-show="isLoggedIn">
-				<table style="width: 100%">
-					<tr>
-						<th><h3 style="margin-top: 10px !important">Lobby</h3></th>
-						<th></th>
-						<th><h3 style="margin-top: 10px !important">Graveyard</h3></th>
-					</tr>
-					<tr>
-						<td style="width: 20%">
-							<!-- Lobby -->
-							<div id="lobby" class="lobby">
-								<div ng-repeat="lobbyUser in lobby track by $index" class="card wow-card-container text-center mb-3">
-									<div class="card-body wow-card rounded {{lobbyUser.wowClass}}-bg">
-										<h5 class="card-text">{{lobbyUser.userName}}</h5>
-								  	</div>
-								</div>
-							</div>
-						</td>
+				<nav class="dicegame-nav">
+					<div class="dicegame-nav-item" ng-click="toggleDiceGame()">DiceGame</div>
+					<div class="dicegame-nav-item" ng-click="toggleLeaderboard()">Leaderboard</div>
+					<div class="dicegame-nav-username {{wowClass}}">{{userName}}</div>
+				</nav>
 
-						<td style="width: 60%">
-							<!-- Active game -->
-							<div ng-show="!gameInProgress">
-								<button ng-click="lightUp()" class="btn btn-danger light-up-btn">Light Up</button>
-							</div>
-							<div ng-show="gameInProgress">
-								<img id="fire" class="fire" src="/resources/images/fire.gif">
-								<div ng-repeat="player in players track by $index" id="{{player.userName}}" class="wow-card-container text-center player-in-game rounded {{player.wowClass}}-bg">
-										<span style="font-weight: bold;">{{player.userName}}</span>
-								</div>
-								<div id="currRoll" class="currentRoll" ng-show="currentlyRollingPlayer != null">{{currRoll}}</div>
-								<button ng-show="currentlyRollingPlayer == userName" ng-click="roll()" ng-show="currentlyRollingPlayer == userName" class="btn btn-primary roll-btn" id="rollButton">Roll</button>
-							</div>
-						</td>
-
-						<td style="width: 20%; vertical-align: top;">
-							<!-- Graveyard -->
-							<div id="graveyard" class="graveyard">
-								<div ng-repeat="failkid in graveyard track by $index" class="card wow-card-container text-center mb-3">
-									<div class="card-body wow-card rounded {{failkid.wowClass}}-bg">
-										<h5 class="card-text">{{failkid.userName}}</h5>
-								  	</div>
-								</div>
-							</div>
-
-							<!-- Chat -->
-							<div id="chat" class="chat">
-								<div id="allChatMessages" class="all-chat-messages border border-dark rounded" onmouseenter="stopScrollingChat()" onmouseleave="autoScrollChat()">
-									<div class="message" ng-repeat="message in chatMessages track by $index">
-										{{message}}
+				<!-- DiceGame -->
+				<div ng-show="showDiceGame">
+					<table style="width: 100%">
+						<tr>
+							<th><h3 style="margin-top: 10px !important">Lobby</h3></th>
+							<th></th>
+							<th><h3 style="margin-top: 10px !important">Graveyard</h3></th>
+						</tr>
+						<tr>
+							<td style="width: 20%">
+								<!-- Lobby -->
+								<div id="lobby" class="lobby">
+									<div ng-repeat="lobbyUser in lobby track by $index" class="card wow-card-container text-center mb-3">
+										<div class="card-body wow-card rounded {{lobbyUser.wowClass}}-bg">
+											<h5 class="card-text">{{lobbyUser.userName}}</h5>
+									  	</div>
 									</div>
 								</div>
-								<form ng-submit="chat()">
-									<div class="form-inline" style="flex-flow: nowrap !important">
-										<input ng-model="chatMsg" class="form-control" style="width: 85%;" autocomplete="off" />
-										<button class="form-control btn btn-info" style="margin-left: 5px;">Send</button>
+							</td>
+
+							<td style="width: 60%">
+								<!-- Active game -->
+								<div ng-show="!gameInProgress">
+									<button ng-click="lightUp()" class="btn btn-danger light-up-btn">Light Up</button>
+								</div>
+								<div ng-show="gameInProgress">
+									<img id="fire" class="fire" src="/resources/images/fire.gif">
+									<div ng-repeat="player in players track by $index" id="{{player.userName}}" class="wow-card-container text-center player-in-game rounded {{player.wowClass}}-bg">
+											<span style="font-weight: bold;">{{player.userName}}</span>
 									</div>
-								</form>
-							</div>
-						</td>
-					</tr>
-				</table>
+									<div id="currRoll" class="currentRoll" ng-show="currentlyRollingPlayer != null">{{currRoll}}</div>
+									<button ng-show="currentlyRollingPlayer == userName" ng-click="roll()" ng-show="currentlyRollingPlayer == userName" class="btn btn-primary roll-btn" id="rollButton">Roll</button>
+								</div>
+							</td>
+
+							<td style="width: 20%; vertical-align: top;">
+								<!-- Graveyard -->
+								<div id="graveyard" class="graveyard">
+									<div ng-repeat="failkid in graveyard track by $index" class="card wow-card-container text-center mb-3">
+										<div class="card-body wow-card rounded {{failkid.wowClass}}-bg">
+											<h5 class="card-text">{{failkid.userName}}</h5>
+									  	</div>
+									</div>
+								</div>
+
+								<!-- Chat -->
+								<div id="chat" class="chat">
+									<div id="allChatMessages" class="all-chat-messages border border-dark rounded" onmouseenter="stopScrollingChat()" onmouseleave="autoScrollChat()">
+										<div class="message" ng-repeat="message in chatMessages track by $index">
+											{{message}}
+										</div>
+									</div>
+									<form ng-submit="chat()">
+										<div class="form-inline" style="flex-flow: nowrap !important">
+											<input ng-model="chatMsg" class="form-control" style="width: 85%;" autocomplete="off" />
+											<button class="form-control btn btn-info" style="margin-left: 5px;">Send</button>
+										</div>
+									</form>
+								</div>
+							</td>
+						</tr>
+					</table>
+				</div>
+
+				<!-- Leaderboard -->
+				<div ng-show="showLeaderboard" style="height: 650px; overflow: auto;">
+					<table class="dicegame-leaderboard table table-striped table-dark table-bordered table-hover table-sm">
+						<thead>
+							<th class="dicegame-leaderboard-header">Username</th>
+							<th class="dicegame-leaderboard-header">Wins</th>
+						</thead>
+						<tbody>
+							<tr ng-repeat="player in leaderboard track by $index" ng-class="{'{{wowClass}}': '{{player.username}}' == '{{userName}}'}">
+								<td class="dicegame-leaderboard-cell">{{player.username}}</td>
+								<td class="dicegame-leaderboard-cell">{{player.wins}}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 
 			</div>
 		</div>

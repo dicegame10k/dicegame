@@ -11,9 +11,22 @@ angular.module('diceGameApp', [])
   		$scope.players = [];
   		$scope.graveyard = [];
   		$scope.chatMessages = [];
+  		$scope.leaderboard = [];
   		$scope.chatMsg = '';
   		$scope.gameInProgress = false;
   		$scope.currentlyRollingPlayer = null;
+  		$scope.showDiceGame = true;
+  		$scope.showLeaderboard = false;
+
+		$scope.toggleDiceGame = function() {
+			$scope.showDiceGame = true;
+			$scope.showLeaderboard = false;
+		};
+
+		$scope.toggleLeaderboard = function() {
+			$scope.showDiceGame = false;
+			$scope.showLeaderboard = true;
+		};
 
   		$scope.requestReset = function() {
   			socket.emit("requestReset");
@@ -194,5 +207,17 @@ angular.module('diceGameApp', [])
 			var offsetStyle = "left: " + offsetLeft + "px; top: " + offsetTop + "px; ";
 			return offsetStyle;
 		}
+
+		// Leaderboard
+		socket.on("leaderboardUpdated", function(leaderboard) {
+			$timeout(() => {
+				leaderboard.sort(lbSort);
+				$scope.leaderboard = leaderboard;
+			});
+
+			function lbSort(a, b) {
+				return a.wins > b.wins ? -1 : 1;
+			}
+		});
 
   }]);

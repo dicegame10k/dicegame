@@ -11,6 +11,29 @@ th {
 	text-align: center !important;
 }
 
+.dicegame-nav {
+	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	padding: .5rem 1rem;
+	background-color: #1F2833;
+}
+
+.dicegame-nav-item {
+	cursor: pointer;
+	padding: .5rem 1rem;
+}
+
+.dicegame-nav-item:hover {
+	color: #00FF96;
+}
+
+.dicegame-nav-username {
+	margin-left: auto !important;
+	margin-right: 30px !important;
+}
+
 .lobby {
 	height: 650px;
 	overflow: auto;
@@ -67,6 +90,24 @@ th {
   overflow-y: scroll;
   overflow-wrap: break-word;
   margin: 1px 10px; 1px 10px;
+}
+
+.dicegame-leaderboard {
+	width: 95% !important;
+	margin: 10px auto;
+	border-top-left-radius: 25px;
+	border-top-right-radius: 25px;
+}
+
+.dicegame-leaderboard-cell {
+	text-align: center;
+	width: 50%;
+}
+
+.dicegame-leaderboard-header {
+	border-top: none !important;
+	border-left: none !important;
+	border-right: none !important;
 }
 
 .footer {
