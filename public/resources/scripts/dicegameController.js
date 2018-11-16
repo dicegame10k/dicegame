@@ -69,7 +69,8 @@ angular.module('diceGameApp', [])
 				'/lightup': $scope.lightUp,
 				'/force_roll': $scope.forceRoll,
 				'/kick': $scope.kick,
-				'/clear_leaderboard_bdb_only': $scope.clearLeaderboard
+				'/clear_leaderboard_bdb_only': $scope.clearLeaderboard,
+				'/delete_player_from_leaderboard': $scope.deletePlayerFromLeaderboard
 			}
 
 			// only look at the first word of chat
@@ -281,4 +282,11 @@ angular.module('diceGameApp', [])
 			socket.emit('clearLeaderboard');
 		}
 
+		$scope.deletePlayerFromLeaderboard = function(chatMsg) {
+			var playerToDelete = chatMsg.split(' ')[1];
+			if (!playerToDelete)
+				return;
+
+			socket.emit("deletePlayerFromLeaderboard", playerToDelete);
+		};
   }]);

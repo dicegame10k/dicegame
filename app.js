@@ -185,6 +185,12 @@ io.on('connection', function(socket) {
 	socket.on('clearLeaderboard', function() {
 		clearLeaderboard();
 	});
+
+	socket.on('deletePlayerFromLeaderboard', function(playerToDelete) {
+		deletePlayerFromLeaderboard(playerToDelete, () => {
+			getLeaderboard((leaderboard) => { io.emit('leaderboardUpdated', leaderboard)});
+		});
+	});
 });
 
 function startGame(startingUser) {
@@ -366,24 +372,31 @@ function clearLeaderboard() {
 		var numRecordsDeleted = 0;
 		for (var i = 0; i < leaderboard.length; i += 1) {
 			var aUsername = leaderboard[i].username;
-			var deleteParams = {
-				TableName: leaderboardTableName,
-				Key: {
-					"username": aUsername
-				}
-			}
-			docClient.delete(deleteParams, function(err, data) {
-				if (err) {
-					console.log("Failed to delete leaderboard entry for " + aUsername, err);
-					return;
-				}
-
-				console.log("Successfully deleted leaderboard entry", data);
+			deletePlayerFromLeaderboard(aUsername, () => {
 				numRecordsDeleted += 1;
 				if (numRecordsDeleted == leaderboard.length)
 					getLeaderboard((leaderboard) => { io.emit('leaderboardUpdated', leaderboard)});
 			});
 		}
+	});
+}
+
+function deletePlayerFromLeaderboard(playerToDelete, callback) {
+	var deleteParams = {
+		TableName: leaderboardTableName,
+		Key: {
+			"username": playerToDelete
+		}
+	};
+
+	docClient.delete(deleteParams, function(err, data) {
+		if (err) {
+			console.log("Failed to delete player " + playerToDelete + " from leaderboard", err);
+			return;
+		}
+
+		console.log("Successfully deleted " + playerToDelete + " from leaderboard");
+		callback();
 	});
 }
 
