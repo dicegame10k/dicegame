@@ -7,10 +7,22 @@ var port = process.env.PORT || 8080;
 
 // dynamoDB setup for leaderboard
 var AWS = require("aws-sdk");
-AWS.config.update({
-  region: "us-west-2",
-  endpoint: "http://localhost:8000"
-});
+
+// To start dynamoDB locally: java -Djava.library.path=./DynamoDBLocal_lib -jarynamoDBLocal.jar -sharedDb
+var awsConfig = {
+	region: "us-west-2",
+	endpoint: "http://localhost:8000"
+};
+
+// When uploading new ZIP to elasticbeanstalk, replace accessKeyId and secretAccessKey with creds in ~/.aws/credentials
+//var awsConfig = {
+//	region: "us-west-2",
+//	accessKeyId: "",
+//	secretAccessKey: "",
+//}
+
+AWS.config.update(awsConfig);
+
 var dynamodb = new AWS.DynamoDB();
 var docClient = new AWS.DynamoDB.DocumentClient();
 var leaderboardTableName = "Leaderboard";
@@ -286,7 +298,7 @@ function updateLeaderboard(winningPlayer) {
 	// first check if this user already has a record. If so, increment number of wins, otherwise create a new record with 1 win
 	docClient.get(winningPlayerParams, function(err, data) {
 	    if (err) {
-	        console.log("Error retrieving winning user record", data);
+	        console.log("Error retrieving winning user record", err);
 	        io.emit('chatMessageSent', winMsg);
 	        return;
 	    }
@@ -308,7 +320,7 @@ function updateLeaderboard(winningPlayer) {
 
 	        docClient.update(incrementWinsParams, function(err, data) {
 	            if (err) {
-	                console.log("Error updating winning user record", data);
+	                console.log("Error updating winning user record", err);
 	                io.emit('chatMessageSent', winMsg);
 	                return;
 	            }
@@ -333,7 +345,7 @@ function updateLeaderboard(winningPlayer) {
 
 	        docClient.put(newUserParams, function(err, data) {
 	            if (err) {
-	                console.log("Error creating wining user record", data);
+	                console.log("Error creating wining user record", err);
 	                io.emit('chatMessageSent', winMsg);
 	                return;
 	            }
@@ -357,7 +369,7 @@ var scanTableParams = {
 function getLeaderboard(callback) {
     docClient.scan(scanTableParams, function(err, data) {
     	if (err) {
-    		console.log("Error scanning table while trying to broadcast new leaderboard", data);
+    		console.log("Error scanning table while trying to broadcast new leaderboard", err);
     		return;
     	}
 
@@ -399,6 +411,3 @@ function deletePlayerFromLeaderboard(playerToDelete, callback) {
 		callback();
 	});
 }
-
-//TODO: env variables/table setup in aws
-//TODO: aws credentials

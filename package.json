@@ -1,6 +1,6 @@
 {
   "name": "DiceGame",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "DiceGame",
   "dependencies": {
     "aws-sdk": "^2.354.0",
