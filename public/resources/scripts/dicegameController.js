@@ -273,7 +273,7 @@ angular.module('diceGameApp', [])
 			});
 
 			function lbSort(a, b) {
-				return a.wins > b.wins ? -1 : 1;
+				return a.dkp > b.dkp ? -1 : 1;
 			}
 		});
 

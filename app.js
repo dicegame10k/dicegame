@@ -8,7 +8,8 @@ var port = process.env.PORT || 8080;
 // dynamoDB setup for leaderboard
 var AWS = require("aws-sdk");
 
-// To start dynamoDB locally: java -Djava.library.path=./DynamoDBLocal_lib -jarynamoDBLocal.jar -sharedDb
+// To start dynamoDB locally, go to the directory where it's unzipped and run:
+// java -Djava.library.path=./DynamoDBLocal_lib -jar DynamoDBLocal.jar -sharedDb
 var awsConfig = {
 	region: "us-west-2",
 	endpoint: "http://localhost:8000"
@@ -35,6 +36,7 @@ http.listen(port, function() {
 });
 
 var currRoll = 100;
+var dkpWon = 0;
 var lobby = [];
 var dgPlayers = [];
 var graveyard = [];
@@ -176,14 +178,20 @@ io.on('connection', function(socket) {
 					dgPlayers.splice(i, 1);
 					graveyard.push(player);
 					currRoll = 100;
-					// check win condition
-					if (dgPlayers.length == 1) {
-						setTimeout(() => { updateLeaderboard(dgPlayers[0].userName); }, 1000);
-						setTimeout(() => { resetGame(); io.emit('resetGame', getGameState()); }, 5000);
-						currentlyRollingPlayer = null;
-					} else if (dgPlayers.length == 0) {
-						// player was playing alone, so he loses
-						setTimeout(() => { io.emit('chatMessageSent', playerRolling + " loses. You were playing alone, what did you expect?"); }, 1000);
+					// give the player that rolled a 1 some dkp
+					updateLeaderboard(playerRolling, dkpWon, false);
+					dkpWon += 1;
+
+					// check if game is over
+					if (dgPlayers.length < 2) {
+						if (dgPlayers.length == 0) // player was playing alone, so he loses
+							setTimeout(() => { io.emit('chatMessageSent', playerRolling + " loses. You were playing alone, what did you expect?"); }, 1000);
+						else if (dgPlayers.length == 1) { // win condition, give the winning player their dkp
+							var winningPlayerUserName = dgPlayers[0].userName;
+							setTimeout(() => { io.emit('chatMessageSent', winningPlayerUserName + " wins!"); }, 1400);
+							updateLeaderboard(winningPlayerUserName, dkpWon, true);
+						}
+
 						setTimeout(() => { resetGame(); io.emit('resetGame', getGameState()); }, 5000);
 						currentlyRollingPlayer = null;
 					}
@@ -207,6 +215,7 @@ io.on('connection', function(socket) {
 
 function startGame(startingUser) {
 	currRoll = 100;
+	dkpWon = 0;
 	gameInProgress = true;
 	dgPlayers = dgPlayers.concat(lobby).concat(graveyard);
 	lobby = [];
@@ -225,6 +234,7 @@ function startGame(startingUser) {
 
 function resetGame() {
 	currRoll = 100;
+	dkpWon = 0;
 	// bring everyone back into the lobby
 	lobby = lobby.concat(dgPlayers).concat(graveyard);
 	dgPlayers = [];
@@ -285,77 +295,79 @@ function removePlayer(userName) {
 }
 
 // Leaderboard
-function updateLeaderboard(winningPlayer) {
-	// write down the win message here (without total wins) so we can still send out a chat message in case any DB operation fails
-	var winMsg = winningPlayer + " wins!";
-	var winningPlayerParams = {
+function updateLeaderboard(playerUserName, dkpWon, isWinningPlayer) {
+	// delay the chat message if this is the winning player, because the losing player's message should go out first
+	var chatMsgDelay = isWinningPlayer ? 1500 : 1050;
+	var playerParams = {
 	    TableName: leaderboardTableName,
 	    Key: {
-	        "username": winningPlayer
+	        "username": playerUserName
 	    }
 	};
 
-	// first check if this user already has a record. If so, increment number of wins, otherwise create a new record with 1 win
-	docClient.get(winningPlayerParams, function(err, data) {
+	// first check if this user already has a record. If so, increment number of dkp, otherwise create a new record
+	docClient.get(playerParams, function(err, data) {
 	    if (err) {
-	        console.log("Error retrieving winning user record", err);
-	        io.emit('chatMessageSent', winMsg);
+	        console.log("Error retrieving user record for " + playerUserName, err);
+	        setTimeout(() => { io.emit('chatMessageSent', "Error retrieving " + playerUserName + "'s leaderboard record. Failbeats dev"); }, chatMsgDelay);
 	        return;
 	    }
 
 	    var userRecord = data["Item"];
 	    if (userRecord) {
-	        // user exists, increment wins by 1
-	        var incrementWinsParams = {
+	        // user exists, increment dkp
+	        var incrementdkpParams = {
 	            TableName: leaderboardTableName,
 	            Key: {
-	                "username": winningPlayerParams["Key"]["username"]
+	                "username": playerParams["Key"]["username"]
 	            },
-	            UpdateExpression: "set wins = wins + :val",
+	            UpdateExpression: "set dkp = dkp + :val",
 	            ExpressionAttributeValues: {
-	                ":val": 1
+	                ":val": dkpWon
 	            },
 	            ReturnValues:"UPDATED_NEW"
 	        }
 
-	        docClient.update(incrementWinsParams, function(err, data) {
+	        docClient.update(incrementdkpParams, function(err, data) {
 	            if (err) {
-	                console.log("Error updating winning user record", err);
-	                io.emit('chatMessageSent', winMsg);
+	                console.log("Error updating user record for " + playerUserName, err);
+	                setTimeout(() => { io.emit('chatMessageSent', "Error updating " + playerUserName + "'s leaderboard record. Failbeats dev"); }, chatMsgDelay);
 	                return;
 	            }
 
-				var winningPlayerTotalWins = data["Attributes"]["wins"];
-	            winMsg = winningPlayer + " wins! (" + winningPlayerTotalWins + " total)";
-	            io.emit('chatMessageSent', winMsg);
-	            // broadcast the new leaderboard
-	            getLeaderboard((leaderboard) => {
-					io.emit("leaderboardUpdated", leaderboard);
-	            });
+				var playerTotaldkp = data["Attributes"]["dkp"];
+	            setTimeout(() => {
+	            	io.emit('chatMessageSent', playerUserName + " won " + dkpWon + " DKP (" + playerTotaldkp + " total)");
+	            	// broadcast the new leaderboard
+	            	getLeaderboard((leaderboard) => {
+						io.emit("leaderboardUpdated", leaderboard);
+	            	});
+	            }, chatMsgDelay);
 	        });
 	    } else {
-	        // user does not exist, create new record with one win
+	        // user does not exist, create new record
 	        var newUserParams = {
 	            TableName: leaderboardTableName,
 	            Item: {
-	                "username": winningPlayer,
-	                "wins": 1
+	                "username": playerUserName,
+	                "dkp": dkpWon
 	            }
 	        };
 
 	        docClient.put(newUserParams, function(err, data) {
 	            if (err) {
-	                console.log("Error creating wining user record", err);
-	                io.emit('chatMessageSent', winMsg);
+	                console.log("Error creating user record for " + playerUserName, err);
+	                setTimeout(() => { io.emit('chatMessageSent', "Error creating " + playerUserName + "'s leaderboard record. Failbeats dev"); }, chatMsgDelay);
 	                return;
 	            }
 
-				winMsg = winningPlayer + " wins! (1 total)";
-	            io.emit('chatMessageSent', winMsg);
-	            // broadcast the new leaderboard
-	            getLeaderboard((leaderboard) => {
-					io.emit("leaderboardUpdated", leaderboard);
-	            });
+	            setTimeout(() => {
+	            	io.emit('chatMessageSent', playerUserName + " won " + dkpWon + " DKP (" + dkpWon + " total)");
+	            	// broadcast the new leaderboard
+	            	getLeaderboard((leaderboard) => {
+						io.emit("leaderboardUpdated", leaderboard);
+	            	});
+	            }, chatMsgDelay);
 	        });
 	    }
 	});

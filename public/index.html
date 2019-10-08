@@ -6,6 +6,7 @@
 		<link rel="stylesheet" href="/resources/styles/classColors.css">
 		<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
+
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.5/angular.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script src="/resources/scripts/dicegameController.js"></script>
@@ -105,12 +106,16 @@
 					<table class="dicegame-leaderboard table table-striped table-dark table-bordered table-hover table-sm">
 						<thead>
 							<th class="dicegame-leaderboard-header">Username</th>
-							<th class="dicegame-leaderboard-header">Wins</th>
+							<th class="dicegame-leaderboard-header">
+								<div style="cursor: help;" data-toggle="tooltip" title="You get 1 DKP for each person you beat in a game">
+									DKP
+								</div>
+							</th>
 						</thead>
 						<tbody id="leaderboardBody">
 							<tr ng-repeat="player in leaderboard track by $index" id="{{player.username}}-leaderboard">
 								<td class="dicegame-leaderboard-cell">{{player.username}}</td>
-								<td class="dicegame-leaderboard-cell">{{player.wins}}</td>
+								<td class="dicegame-leaderboard-cell">{{player.dkp}}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -136,6 +141,6 @@
 		</script>
 	</body>
 	<footer class="footer text-muted">
-		© 2018 <a target="_blank" href="https://www.wowprogress.com/guild/us/emerald-dream/Chill+Beats">&lt;Chill Beats&gt;</a>
+		© 2020 <a target="_blank" href="https://www.wowprogress.com/guild/us/emerald-dream/Chill+Beats">&lt;Chill Beats&gt;</a>
 	</footer>
 </html>
