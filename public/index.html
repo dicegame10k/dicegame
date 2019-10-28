@@ -84,6 +84,10 @@
 
 								<!-- Chat -->
 								<div id="chat" class="chat">
+									<div ng-if="isMobileDevice">
+										<input type="checkbox" id="autoscrollCheckbox" name="autoscrollChat" onchange="toggleAutoscroll()" checked/>
+										<label for="autoscrollCheckbox">Autoscroll Chat</label>
+									</div>
 									<div id="allChatMessages" class="all-chat-messages border border-dark rounded" onmouseenter="stopScrollingChat()" onmouseleave="autoScrollChat()">
 										<div class="message" ng-repeat="message in chatMessages track by $index">
 											{{message}}
@@ -137,6 +141,14 @@
 
 			function stopScrollingChat() {
 				clearInterval(chatWindowScrollIntvlId);
+			}
+
+			function toggleAutoscroll() {
+				var isChecked = document.getElementById('autoscrollCheckbox').checked;
+				if (isChecked)
+					autoScrollChat();
+				else
+					stopScrollingChat();
 			}
 		</script>
 	</body>

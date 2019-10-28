@@ -17,6 +17,7 @@ angular.module('diceGameApp', [])
   		$scope.currentlyRollingPlayer = null;
   		$scope.showDiceGame = true;
   		$scope.showLeaderboard = false;
+  		$scope.isMobileDevice = /Mobi|Android/i.test(navigator.userAgent);
 
 		$scope.toggleDiceGame = function() {
 			$scope.showDiceGame = true;
